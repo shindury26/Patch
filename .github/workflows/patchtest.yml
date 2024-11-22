@@ -1,5 +1,5 @@
 
-name: Patch Mikrotik RouterOS 7.x Test
+name: Patch Mikrotik RouterOS 7.16.1
 on:
   # push:
   #   branches: [ "main" ]
@@ -63,11 +63,11 @@ jobs:
       id: get_latest
       run: |
         echo $(uname -a)
-        LATEST_VERSION=$(wget -nv -O - https://${{ env.MIKRO_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
-        echo Latest Version:$LATEST_VERSION
+        LATEST_VERSION=$(wget -nv -O - https://${{ env.MIKRO_UPGRADE_URL }}/routeros/7.16.1/.${{ matrix.channel }} | cut -d ' ' -f1)
+        echo Latest Version:7.16.1
         if [ "${{ github.event_name }}" == "schedule" ]; then
-          _LATEST_VERSION=$(wget -nv -O - https://${{ env.CUSTOM_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
-          if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
+          _LATEST_VERSION=$(wget -nv -O - https://${{ env.CUSTOM_UPGRADE_URL }}/routeros/7.16.1/.${{ matrix.channel }} | cut -d ' ' -f1)
+          if [ "$_LATEST_VERSION" == "7.16.1" ]; then
             echo "No new version found"
             echo "has_new_version=false" >> $GITHUB_OUTPUT
             exit 0
@@ -146,18 +146,18 @@ jobs:
     - name: Get netinstall ${{ env.LATEST_VERSION }}
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86' && steps.cache-netinstall.outputs.cache-hit != 'true'
       run: |
-        sudo wget -nv -O netinstall.zip https://download.mikrotik.com/routeros/$LATEST_VERSION/netinstall-$LATEST_VERSION.zip
-        sudo wget -nv -O netinstall.tar.gz https://download.mikrotik.com/routeros/$LATEST_VERSION/netinstall-$LATEST_VERSION.tar.gz
+        sudo wget -nv -O netinstall.zip https://download.mikrotik.com/routeros/7.16.1/netinstall-7.16.1.zip
+        sudo wget -nv -O netinstall.tar.gz https://download.mikrotik.com/routeros/7.16.1/netinstall-7.16.1.tar.gz
 
     - name: Patch netinstall ${{ env.LATEST_VERSION }}
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86'
       run: |
         sudo unzip netinstall.zip
         sudo -E python3 patch.py netinstall netinstall.exe
-        sudo zip netinstall-$LATEST_VERSION.zip ./netinstall.exe
+        sudo zip netinstall-7.16.1.zip ./netinstall.exe
         sudo tar -xvf netinstall.tar.gz
         sudo -E python3 patch.py netinstall netinstall-cli
-        sudo tar -czvf netinstall-$LATEST_VERSION.tar.gz ./netinstall-cli
+        sudo tar -czvf netinstall-7.16.1.tar.gz ./netinstall-cli
 
     - name: Cache mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
       if: steps.get_latest.outputs.has_new_version == 'true'
@@ -171,7 +171,7 @@ jobs:
     - name: Get mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
       if: steps.get_latest.outputs.has_new_version == 'true' && steps.cache-mikrotik.outputs.cache-hit != 'true'
       run: |
-          sudo wget -nv -O mikrotik.iso https://download.mikrotik.com/routeros/$LATEST_VERSION/mikrotik-$LATEST_VERSION$ARCH.iso
+          sudo wget -nv -O mikrotik.iso https://download.mikrotik.com/routeros/7.16.1/mikrotik-7.16.1$ARCH.iso
 
 
     - name: Patch mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
@@ -185,17 +185,17 @@ jobs:
         sudo rsync -a ./iso/ ./new_iso/
         sudo umount ./iso
         sudo rm -rf ./iso
-        sudo mv ./new_iso/routeros-$LATEST_VERSION$ARCH.npk ./
-        sudo -E python3 patch.py npk routeros-$LATEST_VERSION$ARCH.npk
+        sudo mv ./new_iso/routeros-7.16.1$ARCH.npk ./
+        sudo -E python3 patch.py npk routeros-7.16.1$ARCH.npk
         NPK_FILES=$(find ./new_iso/*.npk)
         for file in $NPK_FILES; do
             sudo -E python3 npk.py sign $file $file
         done
-        sudo cp routeros-$LATEST_VERSION$ARCH.npk ./new_iso/
-        sudo -E python3 npk.py create ./new_iso/gps-$LATEST_VERSION$ARCH.npk ./option-$LATEST_VERSION$ARCH.npk option ./option.sfs -desc="busybox"
-        sudo cp option-$LATEST_VERSION$ARCH.npk ./new_iso/
-        sudo -E python3 npk.py create ./new_iso/gps-$LATEST_VERSION$ARCH.npk ./python3-$LATEST_VERSION$ARCH.npk python3 ./python3.sfs -desc="python 3.11.9"
-        sudo cp python3-$LATEST_VERSION$ARCH.npk ./new_iso/
+        sudo cp routeros-7.16.1$ARCH.npk ./new_iso/
+        sudo -E python3 npk.py create ./new_iso/gps-7.16.1$ARCH.npk ./option-7.16.1$ARCH.npk option ./option.sfs -desc="busybox"
+        sudo cp option-7.16.1$ARCH.npk ./new_iso/
+        sudo -E python3 npk.py create ./new_iso/gps-7.16.1$ARCH.npk ./python3-7.16.1$ARCH.npk python3 ./python3.sfs -desc="python 3.11.9"
+        sudo cp python3-7.16.1$ARCH.npk ./new_iso/
         sudo mkdir ./efiboot
         sudo mount -o loop ./new_iso/efiboot.img ./efiboot
         if [ "${{ matrix.arch }}" == "x86" ]; then
@@ -203,8 +203,8 @@ jobs:
           sudo cp ./efiboot/linux.x86_64 ./BOOTX64.EFI
           sudo cp ./BOOTX64.EFI ./new_iso/isolinux/linux
           sudo umount ./efiboot
-          sudo mkisofs -o mikrotik-$LATEST_VERSION$ARCH.iso \
-                      -V "MikroTik $LATEST_VERSION ${{ matrix.arch }}" \
+          sudo mkisofs -o mikrotik-7.16.1$ARCH.iso \
+                      -V "MikroTik 7.16.1 ${{ matrix.arch }}" \
                       -sysid "" -preparer "MiKroTiK" \
                       -publisher "" -A "MiKroTiK RouterOS" \
                       -input-charset utf-8 \
@@ -221,8 +221,8 @@ jobs:
         elif [ "${{ matrix.arch }}" == "arm64" ]; then
           sudo -E python3 patch.py kernel ./efiboot/EFI/BOOT/BOOTAA64.EFI
           sudo umount ./efiboot
-          sudo xorriso -as mkisofs -o mikrotik-$LATEST_VERSION$ARCH.iso \
-                      -V "MikroTik $LATEST_VERSION ${{ matrix.arch }}" \
+          sudo xorriso -as mkisofs -o mikrotik-7.16.1$ARCH.iso \
+                      -V "MikroTik 7.16.1 ${{ matrix.arch }}" \
                       -sysid "" -preparer "MiKroTiK" \
                       -publisher "" -A "MiKroTiK RouterOS" \
                       -input-charset utf-8 \
@@ -236,7 +236,7 @@ jobs:
         sudo cp ./new_iso/*.npk ./all_packages/
         sudo rm -rf ./new_iso
         cd ./all_packages
-        sudo zip ../all_packages-${{ matrix.arch }}-$LATEST_VERSION.zip *.npk
+        sudo zip ../all_packages-${{ matrix.arch }}-7.16.1.zip *.npk
         cd ..
 
     - name: Cache refind
@@ -256,8 +256,8 @@ jobs:
       run: |
         sudo modprobe nbd
         sudo apt-get install -y qemu-utils extlinux > /dev/null
-        truncate --size 128M install-image-$LATEST_VERSION.img
-        sudo qemu-nbd -c /dev/nbd0 -f raw install-image-$LATEST_VERSION.img
+        truncate --size 128M install-image-7.16.1.img
+        sudo qemu-nbd -c /dev/nbd0 -f raw install-image-7.16.1.img
         sudo mkfs.vfat -n "Install" /dev/nbd0
         sudo mkdir ./install
         sudo mount /dev/nbd0 ./install
@@ -286,8 +286,8 @@ jobs:
         sudo umount /dev/nbd0
         sudo qemu-nbd -d /dev/nbd0
         sudo rm -rf ./install
-        sudo zip install-image-$LATEST_VERSION.zip ./install-image-$LATEST_VERSION.img
-        sudo rm ./install-image-$LATEST_VERSION.img
+        sudo zip install-image-7.16.1.zip ./install-image-7.16.1.img
+        sudo rm ./install-image-7.16.1.img
 
     - name: Cache chr-${{ env.LATEST_VERSION }}${{ env.ARCH }}.img.zip
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'arm64'
@@ -301,31 +301,31 @@ jobs:
     - name: Get chr-${{ env.LATEST_VERSION }}${{ env.ARCH }}.img
       if: steps.get_latest.outputs.has_new_version == 'true' && steps.cache-chr-img.outputs.cache-hit != 'true' && matrix.arch == 'arm64'
       run: |
-          sudo wget -nv -O chr.img.zip https://download.mikrotik.com/routeros/$LATEST_VERSION/chr-$LATEST_VERSION$ARCH.img.zip
+          sudo wget -nv -O chr.img.zip https://download.mikrotik.com/routeros/7.16.1/chr-7.16.1$ARCH.img.zip
           sudo unzip chr.img.zip
           sudo rm chr.img.zip
-          sudo mv chr-$LATEST_VERSION$ARCH.img chr.img
+          sudo mv chr-7.16.1$ARCH.img chr.img
 
     - name: Create chr-${{ env.LATEST_VERSION }}${{ env.ARCH }}.img
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
         sudo modprobe nbd
         sudo apt-get install -y qemu-utils extlinux > /dev/null
-        truncate --size 128M chr-$LATEST_VERSION$ARCH.img
+        truncate --size 128M chr-7.16.1$ARCH.img
         sgdisk --clear --set-alignment=2 \
             --new=1::+32M --typecode=1:8300 --change-name=1:"RouterOS Boot" --attributes=1:set:2 \
             --new=2::-0 --typecode=2:8300 --change-name=2:"RouterOS" \
             --gpttombr=1:2 \
-            chr-$LATEST_VERSION$ARCH.img
-        dd if=chr-$LATEST_VERSION$ARCH.img of=pt.bin bs=1 count=66 skip=446
+            chr-7.16.1$ARCH.img
+        dd if=chr-7.16.1$ARCH.img of=pt.bin bs=1 count=66 skip=446
         echo -e "\x80" | dd of=pt.bin  bs=1 count=1  conv=notrunc
         sgdisk --mbrtogpt --clear --set-alignment=2 \
             --new=1::+32M --typecode=1:8300 --change-name=1:"RouterOS Boot" --attributes=1:set:2 \
             --new=2::-0 --typecode=2:8300 --change-name=2:"RouterOS" \
-            chr-$LATEST_VERSION$ARCH.img
-        dd if=mbr.bin of=chr-$LATEST_VERSION$ARCH.img  bs=1 count=446 conv=notrunc
-        dd if=pt.bin of=chr-$LATEST_VERSION$ARCH.img  bs=1 count=66 seek=446 conv=notrunc
-        sudo qemu-nbd -c /dev/nbd0 -f raw chr-$LATEST_VERSION$ARCH.img
+            chr-7.16.1$ARCH.img
+        dd if=mbr.bin of=chr-7.16.1$ARCH.img  bs=1 count=446 conv=notrunc
+        dd if=pt.bin of=chr-7.16.1$ARCH.img  bs=1 count=66 seek=446 conv=notrunc
+        sudo qemu-nbd -c /dev/nbd0 -f raw chr-7.16.1$ARCH.img
         sudo mkfs.vfat -n "Boot" /dev/nbd0p1
         sudo mkfs.ext4 -F -L "RouterOS"  -m 0 /dev/nbd0p2
         sudo mkdir -p ./img/{boot,routeros}
@@ -351,39 +351,39 @@ jobs:
         sudo umount /dev/nbd0p1
         sudo mount  /dev/nbd0p2 ./img/routeros/
         sudo mkdir -p ./img/routeros/{var/pdb/{system,option},boot,rw}
-        sudo cp ./all_packages/option-$LATEST_VERSION$ARCH.npk ./img/routeros/var/pdb/option/image
-        sudo cp ./all_packages/routeros-$LATEST_VERSION$ARCH.npk ./img/routeros/var/pdb/system/image
+        sudo cp ./all_packages/option-7.16.1$ARCH.npk ./img/routeros/var/pdb/option/image
+        sudo cp ./all_packages/routeros-7.16.1$ARCH.npk ./img/routeros/var/pdb/system/image
         sudo umount /dev/nbd0p2
         sudo rm -rf ./img
         sudo qemu-nbd -d /dev/nbd0
 
-        sudo qemu-img convert -f raw -O qcow2 chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.qcow2
-        sudo qemu-img convert -f raw -O vmdk chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.vmdk
-        sudo qemu-img convert -f raw -O vpc chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.vhd
-        sudo qemu-img convert -f raw -O vhdx chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.vhdx
-        sudo qemu-img convert -f raw -O vdi chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.vdi
+        sudo qemu-img convert -f raw -O qcow2 chr-7.16.1$ARCH.img chr-7.16.1$ARCH.qcow2
+        sudo qemu-img convert -f raw -O vmdk chr-7.16.1$ARCH.img chr-7.16.1$ARCH.vmdk
+        sudo qemu-img convert -f raw -O vpc chr-7.16.1$ARCH.img chr-7.16.1$ARCH.vhd
+        sudo qemu-img convert -f raw -O vhdx chr-7.16.1$ARCH.img chr-7.16.1$ARCH.vhdx
+        sudo qemu-img convert -f raw -O vdi chr-7.16.1$ARCH.img chr-7.16.1$ARCH.vdi
 
-        sudo zip chr-$LATEST_VERSION$ARCH.qcow2.zip chr-$LATEST_VERSION$ARCH.qcow2
-        sudo zip chr-$LATEST_VERSION$ARCH.vmdk.zip chr-$LATEST_VERSION$ARCH.vmdk
-        sudo zip chr-$LATEST_VERSION$ARCH.vhd.zip chr-$LATEST_VERSION$ARCH.vhd
-        sudo zip chr-$LATEST_VERSION$ARCH.vhdx.zip chr-$LATEST_VERSION$ARCH.vhdx
-        sudo zip chr-$LATEST_VERSION$ARCH.vdi.zip chr-$LATEST_VERSION$ARCH.vdi
-        sudo zip chr-$LATEST_VERSION$ARCH.img.zip chr-$LATEST_VERSION$ARCH.img
+        sudo zip chr-7.16.1$ARCH.qcow2.zip chr-7.16.1$ARCH.qcow2
+        sudo zip chr-7.16.1$ARCH.vmdk.zip chr-7.16.1$ARCH.vmdk
+        sudo zip chr-7.16.1$ARCH.vhd.zip chr-7.16.1$ARCH.vhd
+        sudo zip chr-7.16.1$ARCH.vhdx.zip chr-7.16.1$ARCH.vhdx
+        sudo zip chr-7.16.1$ARCH.vdi.zip chr-7.16.1$ARCH.vdi
+        sudo zip chr-7.16.1$ARCH.img.zip chr-7.16.1$ARCH.img
 
-        sudo rm chr-$LATEST_VERSION$ARCH.qcow2
-        sudo rm chr-$LATEST_VERSION$ARCH.vmdk
-        sudo rm chr-$LATEST_VERSION$ARCH.vhd
-        sudo rm chr-$LATEST_VERSION$ARCH.vhdx
-        sudo rm chr-$LATEST_VERSION$ARCH.vdi
-        sudo rm chr-$LATEST_VERSION$ARCH.img
+        sudo rm chr-7.16.1$ARCH.qcow2
+        sudo rm chr-7.16.1$ARCH.vmdk
+        sudo rm chr-7.16.1$ARCH.vhd
+        sudo rm chr-7.16.1$ARCH.vhdx
+        sudo rm chr-7.16.1$ARCH.vdi
+        sudo rm chr-7.16.1$ARCH.img
 
     - name: Upload Files
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
-        sudo mkdir -p ./publish/$LATEST_VERSION
-        echo $LATEST_VERSION $BUILD_TIME | sudo tee ./publish/NEWESTa7.${{ matrix.channel }}
-        sudo cp CHANGELOG ./publish/$LATEST_VERSION/
-        sudo cp ./all_packages/*.npk ./publish/$LATEST_VERSION/
+        sudo mkdir -p ./publish/7.16.1
+        echo 7.16.1 $BUILD_TIME | sudo tee ./publish/NEWESTa7.${{ matrix.channel }}
+        sudo cp CHANGELOG ./publish/7.16.1/
+        sudo cp ./all_packages/*.npk ./publish/7.16.1/
         sudo chown -R root:root ./publish/
         sudo apt-get install -y lftp > /dev/null 2>&1
         sudo -E lftp -u ${{ secrets.SSH_USERNAME }},'${{ secrets.SSH_PASSWORD }}' sftp://${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PORT }} <<EOF
@@ -405,16 +405,16 @@ jobs:
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
         HEADER="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
-        RELEASE_INFO=$(curl -s -H $HEADER https://api.github.com/repos/${{ github.repository }}/releases/tags/$LATEST_VERSION$ARCH)
+        RELEASE_INFO=$(curl -s -H $HEADER https://api.github.com/repos/${{ github.repository }}/releases/tags/7.16.1$ARCH)
         RELEASE_ID=$(echo $RELEASE_INFO | jq -r '.id')
         echo "Release ID: $RELEASE_ID"
         if [ "$RELEASE_ID" != "null" ]; then
-            curl -X DELETE -H "$HEADER" https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$LATEST_VERSION$ARCH
-            echo "Tag $LATEST_VERSION$ARCH deleted successfully."
+            curl -X DELETE -H "$HEADER" https://api.github.com/repos/${{ github.repository }}/git/refs/tags/7.16.1$ARCH
+            echo "Tag 7.16.1$ARCH deleted successfully."
             curl -X DELETE -H "$HEADER" https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
-            echo "Release with tag $LATEST_VERSION$ARCH deleted successfully."
+            echo "Release with tag 7.16.1$ARCH deleted successfully."
         else
-            echo "Release not found for tag: $LATEST_VERSION)"
+            echo "Release not found for tag: 7.16.1)"
         fi
 
     - name: Create Release tag ${{ env.LATEST_VERSION }} ${{ matrix.arch }}
