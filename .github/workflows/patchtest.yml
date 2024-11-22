@@ -1,5 +1,5 @@
 
-name: Patch Mikrotik RouterOS 7.x
+name: Patch Mikrotik RouterOS 7.x Test
 on:
   # push:
   #   branches: [ "main" ]
