@@ -46,7 +46,7 @@ jobs:
         channel: [stable, testing]
     env:
       TZ: 'Asia/Shanghai'
-      LATEST_VERSION: ""
+      LATEST_VERSION: "7.16.2"
       ARCH: ""
 
     steps:
@@ -141,7 +141,6 @@ jobs:
           netinstall.zip
           netinstall.tar.gz
         key: netinstall-${{ env.LATEST_VERSION }}
-
     - name: Get netinstall ${{ env.LATEST_VERSION }}
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86' && steps.cache-netinstall.outputs.cache-hit != 'true'
       run: |
@@ -384,14 +383,13 @@ jobs:
         sudo cp CHANGELOG ./publish/$LATEST_VERSION/
         sudo cp ./all_packages/*.npk ./publish/$LATEST_VERSION/
         sudo chown -R root:root ./publish/
-        sudo apt-get install -y lftp ssh sshpass > /dev/null 2>&1
+        sudo apt-get install -y lftp > /dev/null 2>&1
         sudo -E lftp -u ${{ secrets.SSH_USERNAME }},'${{ secrets.SSH_PASSWORD }}' sftp://${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PORT }} <<EOF
         set sftp:auto-confirm yes
         mirror --reverse --verbose --only-newer ./publish ${{ secrets.SSH_DIRECTORY }}
+        chown -R 32768:32768 ${{ secrets.SSH_DIRECTORY }}
         bye
         EOF
-        sudo apt-get install ssh sshpass 
-        sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_SERVER }} "chown -R 32768:32768 /rw/disk/${{ secrets.SSH_DIRECTORY }}/"
 
     - name: Clear Cloudflare cache
       if: steps.get_latest.outputs.has_new_version == 'true'
