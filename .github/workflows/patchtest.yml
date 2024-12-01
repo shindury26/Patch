@@ -151,7 +151,7 @@ jobs:
     - name: Patch netinstall 7.16.2
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86'
       run: |
-        sudo pip install --root-user-action=ignore
+        sudo pip --root-user-action=ignore
         sudo unzip netinstall.zip
         sudo -E python3 patch.py netinstall netinstall.exe
         sudo zip netinstall-$LATEST_VERSION.zip ./netinstall.exe
