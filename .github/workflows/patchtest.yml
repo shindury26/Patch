@@ -151,13 +151,8 @@ jobs:
     - name: Patch netinstall 7.16.2
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86'
       run: |
-        sudo pip --root-user-action=ignore
-        sudo unzip netinstall.zip
         sudo -E python3 patch.py netinstall netinstall.exe
-        sudo zip netinstall-$LATEST_VERSION.zip ./netinstall.exe
-        sudo tar -xvf netinstall.tar.gz
-        sudo -E python3 patch.py netinstall netinstall-cli
-        sudo tar -czvf netinstall-$LATEST_VERSION.tar.gz ./netinstall-cli
+        sudo zip netinstall-7.16.2.zip ./netinstall.exe
 
     - name: Cache mikrotik-7.16.2${{ env.ARCH }}.iso
       if: steps.get_latest.outputs.has_new_version == 'true'
