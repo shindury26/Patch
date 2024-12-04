@@ -374,22 +374,6 @@ jobs:
         sudo rm chr-$LATEST_VERSION$ARCH.vdi
         sudo rm chr-$LATEST_VERSION$ARCH.img
 
-    - name: Upload Files
-      if: steps.get_latest.outputs.has_new_version == 'true'
-      run: |
-        sudo mkdir -p ./publish/7.16.2
-        echo 7.16.2 $BUILD_TIME | sudo tee ./publish/7.16.2${{ matrix.channel }}
-        sudo cp CHANGELOG ./publish/7.16.2/
-        sudo cp ./all_packages/*.npk ./publish/7.16.2/
-        sudo chown -R root:root ./publish/
-        sudo apt-get install -y lftp > /dev/null 2>&1
-        sudo -E lftp -u ${{ secrets.SSH_USERNAME }},'${{ secrets.SSH_PASSWORD }}' sftp://${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PORT }} <<EOF
-        set sftp:auto-confirm yes
-        mirror --reverse --verbose --only-newer ./publish ${{ secrets.SSH_DIRECTORY }}
-        chown -R 32768:32768 ${{ secrets.SSH_DIRECTORY }}
-        bye
-        EOF
-
     - name: Clear Cloudflare cache
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
