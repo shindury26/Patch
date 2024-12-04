@@ -46,7 +46,7 @@ jobs:
         channel: [stable, testing]
     env:
       TZ: 'Asia/Shanghai'
-      LATEST_VERSION: ""
+      LATEST_VERSION: "7.16.2"
       ARCH: ""
 
     steps:
@@ -62,10 +62,10 @@ jobs:
       id: get_latest
       run: |
         echo $(uname -a)
-        LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
+        LATEST_VERSION=$(wget -nv -O - https://${{ secret.MIKRO_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
         echo Latest Version:$LATEST_VERSION
         if [ "${{ github.event_name }}" == "schedule" ]; then
-          _LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
+          _LATEST_VERSION=$(wget -nv -O - https://${{ secret.CUSTOM_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
           if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
             echo "No new version found"
             echo "has_new_version=false" >> $GITHUB_OUTPUT
@@ -141,7 +141,6 @@ jobs:
           netinstall.zip
           netinstall.tar.gz
         key: netinstall-${{ env.LATEST_VERSION }}
-
     - name: Get netinstall ${{ env.LATEST_VERSION }}
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86' && steps.cache-netinstall.outputs.cache-hit != 'true'
       run: |
@@ -152,9 +151,11 @@ jobs:
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86'
       run: |
         sudo unzip netinstall.zip
-        sudo zip netinstall-$LATEST_VERSION.zip ./netinstall.exe
         sudo -E python3 patch.py netinstall netinstall.exe
-
+        sudo zip netinstall-$LATEST_VERSION.zip ./netinstall.exe
+        sudo tar -xvf netinstall.tar.gz
+        sudo -E python3 patch.py netinstall netinstall-cli
+        sudo tar -czvf netinstall-$LATEST_VERSION.tar.gz ./netinstall-cli
 
     - name: Cache mikrotik-${{ env.LATEST_VERSION }}${{ env.ARCH }}.iso
       if: steps.get_latest.outputs.has_new_version == 'true'
@@ -373,6 +374,22 @@ jobs:
         sudo rm chr-$LATEST_VERSION$ARCH.vhdx
         sudo rm chr-$LATEST_VERSION$ARCH.vdi
         sudo rm chr-$LATEST_VERSION$ARCH.img
+
+    - name: Upload Files
+      if: steps.get_latest.outputs.has_new_version == 'true'
+      run: |
+        sudo mkdir -p ./publish/$LATEST_VERSION
+        echo $LATEST_VERSION $BUILD_TIME | sudo tee ./publish/NEWESTa7.${{ matrix.channel }}
+        sudo cp CHANGELOG ./publish/$LATEST_VERSION/
+        sudo cp ./all_packages/*.npk ./publish/$LATEST_VERSION/
+        sudo chown -R root:root ./publish/
+        sudo apt-get install -y lftp > /dev/null 2>&1
+        sudo -E lftp -u ${{ secrets.SSH_USERNAME }},'${{ secrets.SSH_PASSWORD }}' sftp://${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PORT }} <<EOF
+        set sftp:auto-confirm yes
+        mirror --reverse --verbose --only-newer ./publish ${{ secrets.SSH_DIRECTORY }}
+        chown -R 32768:32768 ${{ secrets.SSH_DIRECTORY }}
+        bye
+        EOF
 
     - name: Clear Cloudflare cache
       if: steps.get_latest.outputs.has_new_version == 'true'
