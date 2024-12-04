@@ -1,4 +1,4 @@
-name: Patch Mikrotik RouterOS Testing
+name: Patch Mikrotik RouterOS Stable, Testing
 on:
   # push:
   #   branches: [ "main" ]
