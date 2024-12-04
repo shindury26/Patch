@@ -1,4 +1,4 @@
-name: Patch Mikrotik RouterOS $LATEST_VERSION
+name: Patch Mikrotik RouterOS 7.x Auto
 on:
   # push:
   #   branches: [ "main" ]
