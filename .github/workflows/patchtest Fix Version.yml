@@ -3,7 +3,7 @@ on:
   # push:
   #   branches: [ "main" ]
   schedule:
-    - cron: "5 * * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 permissions:
@@ -373,7 +373,7 @@ jobs:
         sudo rm chr-7.16.2$ARCH.vhdx
         sudo rm chr-7.16.2$ARCH.vdi
         sudo rm chr-7.16.2$ARCH.img
-        
+
     - name: Clear Cloudflare cache
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
