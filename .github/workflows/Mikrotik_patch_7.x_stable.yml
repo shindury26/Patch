@@ -69,7 +69,6 @@ jobs:
         if [ "${{ inputs.version }}" == "" ]; then
         LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.stable | cut -d ' ' -f1)
         else
-        LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.stable | cut -d ' ' -f1)
         LATEST_VERSION=${{ inputs.version }}
         if [ "${{ github.event_name }}" == "schedule" ]; then
           _LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.stable | cut -d ' ' -f1)
