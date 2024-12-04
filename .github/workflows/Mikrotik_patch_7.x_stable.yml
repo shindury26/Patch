@@ -1,15 +1,10 @@
-name: Patch Mikrotik RouterOS 7.16.2 Stable
+name: Patch Mikrotik RouterOS  Stable
 on:
   # push:
   #   branches: [ "main" ]
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'RouterOS version, e.g.: 7.16.2, blank for latest'
-        type: string
-        default: ''
 permissions:
   contents: write
 
@@ -66,10 +61,8 @@ jobs:
       id: get_latest
       run: |
         echo $(uname -a)
-        if [ "${{ inputs.version }}" == "" ]; then
-         LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.stable | cut -d ' ' -f1)
-        else
-         LATEST_VERSION=${{ inputs.version }}
+        LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.stable | cut -d ' ' -f1)
+        echo Latest Version:$LATEST_VERSION
         if [ "${{ github.event_name }}" == "schedule" ]; then
           _LATEST_VERSION=$(wget -nv -O - https://download.mikrotik.com/routeros/NEWESTa7.stable | cut -d ' ' -f1)
           if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
@@ -81,7 +74,7 @@ jobs:
         echo "has_new_version=true" >> $GITHUB_OUTPUT
         BUILD_TIME=${{ needs.Set_BuildTime.outputs.BUILD_TIME }}
         echo Build Time:$BUILD_TIME
-        wget -nv -O CHANGELOG https://download.mikrotik.com/routeros/7.16.2/CHANGELOG
+        wget -nv -O CHANGELOG https://download.mikrotik.com/routeros/$LATEST_VERSION/CHANGELOG
         cat CHANGELOG
         echo "LATEST_VERSION=${LATEST_VERSION}" >> $GITHUB_ENV
         echo "BUILD_TIME=${BUILD_TIME}" >> $GITHUB_ENV
