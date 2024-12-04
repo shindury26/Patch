@@ -377,10 +377,10 @@ jobs:
     - name: Upload Files
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
-        sudo mkdir -p ./publish/$LATEST_VERSION
-        echo $LATEST_VERSION $BUILD_TIME | sudo tee ./publish/$LATEST_VERSION${{ matrix.channel }}
-        sudo cp CHANGELOG ./publish/$LATEST_VERSION/
-        sudo cp ./all_packages/*.npk ./publish/$LATEST_VERSION/
+        sudo mkdir -p ./publish/7.16.2
+        echo 7.16.2 $BUILD_TIME | sudo tee ./publish/7.16.2${{ matrix.channel }}
+        sudo cp CHANGELOG ./publish/7.16.2/
+        sudo cp ./all_packages/*.npk ./publish/7.16.2/
         sudo chown -R root:root ./publish/
         sudo apt-get install -y lftp > /dev/null 2>&1
         sudo -E lftp -u ${{ secrets.SSH_USERNAME }},'${{ secrets.SSH_PASSWORD }}' sftp://${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PORT }} <<EOF
@@ -398,7 +398,7 @@ jobs:
             --header "Content-Type:application/json" \
             --data '{"purge_everything": true}'
 
-    - name: Delete Release tag $LATEST_VERSION ${{ matrix.arch }}
+    - name: Delete Release tag 7.16.2 ${{ matrix.arch }}
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
         HEADER="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
