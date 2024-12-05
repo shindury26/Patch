@@ -4,7 +4,7 @@ on:
   #   branches: [ "main" ]
   schedule:
     - cron: "0 0 * * *"
-  workflow_dispatch:
+   workflow_dispatch:
       inputs:
         version:
           description: 'RouterOS version, e.g.: 7.16.2, blank for latest'
@@ -63,6 +63,8 @@ jobs:
       with:
         python-version: '3.11' 
 
+
+
     - name: Get latest routeros version
       id: get_latest
       run: |
@@ -72,6 +74,7 @@ jobs:
         echo Latest Version:$LATEST_VERSION
         else
           LATEST_VERSION=${{ inputs.version }}
+        fi
         if [ "${{ github.event_name }}" == "schedule" ]; then
           _LATEST_VERSION=$(wget -nv -O - https://${{ env.CUSTOM_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }}| cut -d ' ' -f1)
           if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
