@@ -22,18 +22,14 @@ on:
             type: boolean
             default: false
             description: Stable and Testing Channel
-        name:
+        Channel:
               type: choice
               description: Channel
               options: 
               - Stable
               - Testing
               - Stable,Testing
-        message:
-              required: true
-        use-emoji:
-              type: boolean
-              description: Include 🎉🤣 emojis
+
     
 permissions:
   contents: write
@@ -55,7 +51,7 @@ env:
   CUSTOM_RENEW_URL: ${{ secrets.CUSTOM_RENEW_URL }}
   MIKRO_CLOUD_URL: ${{ secrets.MIKRO_CLOUD_URL }}
   CUSTOM_CLOUD_URL: ${{ secrets.CUSTOM_CLOUD_URL }}
-  ss: ${{ github.event.inputs.ChooseChannel }} 
+
 
 jobs:
   Set_BuildTime:
@@ -73,7 +69,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86,arm64]
-        channel: [ ss ]
+        channel: ${{ github.event.inputs.Channel }}
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
