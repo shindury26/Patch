@@ -51,7 +51,7 @@ env:
   CUSTOM_RENEW_URL: ${{ secrets.CUSTOM_RENEW_URL }}
   MIKRO_CLOUD_URL: ${{ secrets.MIKRO_CLOUD_URL }}
   CUSTOM_CLOUD_URL: ${{ secrets.CUSTOM_CLOUD_URL }}
-
+  CHANNELS: ${{ github.event.inputs.Channel }}
 
 jobs:
   Set_BuildTime:
@@ -62,6 +62,7 @@ jobs:
       - name: Set build time
         id: set_buildtime
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
+        
        
   Patch_RouterOS:
     needs: Set_BuildTime
@@ -69,7 +70,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86,arm64]
-        channel: '['' ${{ github.event.inputs.Channel }} ]'
+        channel: [CHANNELS]
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
