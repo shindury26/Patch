@@ -57,8 +57,14 @@ jobs:
   Patch_RouterOS:
     needs: Set_BuildTime
     runs-on: ubuntu-22.04
+    if: github.event.inputs.repo_1 == 'true'   
     strategy:
       matrix:
+        arch: [x86,arm64]
+        channel: [stable,testing]
+     if: github.event.inputs.repo_2 == 'true'   
+    strategy:
+        matrix:
         arch: [x86,arm64]
         channel: [stable,testing]
     env:
