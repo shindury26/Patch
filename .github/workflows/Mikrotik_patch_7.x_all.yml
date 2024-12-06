@@ -26,7 +26,7 @@ on:
               type: choice
               description: Channel
               options: 
-              - Stable
+              - "[Stable]"
               - Testing
               - Stable,Testing
 
@@ -70,7 +70,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86,arm64]
-        channel: [CHANNELS]
+        channel: [env.CHANNELS]
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
