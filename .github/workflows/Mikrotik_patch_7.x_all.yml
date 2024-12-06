@@ -55,7 +55,7 @@ env:
   CUSTOM_RENEW_URL: ${{ secrets.CUSTOM_RENEW_URL }}
   MIKRO_CLOUD_URL: ${{ secrets.MIKRO_CLOUD_URL }}
   CUSTOM_CLOUD_URL: ${{ secrets.CUSTOM_CLOUD_URL }}
-
+  ss: ${{ github.event.inputs.ChooseChannel }} 
 
 jobs:
   Set_BuildTime:
@@ -73,7 +73,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86,arm64]
-        channel: ${{ github.event.inputs.ChooseChannel }} 
+        channel: [ ss ]
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
