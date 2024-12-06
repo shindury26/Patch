@@ -56,10 +56,7 @@ jobs:
       - name: Set build time
         id: set_buildtime
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
-             json="{"
-             json+='"matrix":['
-             sep=''; for word in ${{ github.event.inputs.MatrixConf }}; do json+="${sep}\"${word}\""; sep=,; done
-             json+='],'
+             json="{"json+='"matrix":['sep=''; for word in ${{ github.event.inputs.MatrixConf }}; do json+="${sep}\"${word}\""; sep=,; done json+='],'
              echo "::set-output name=matrixc::${json}"  
              json+='"channel":['
              sep=''; for word in ${{ github.event.inputs.ChannelConf}}; do json+="${sep}\"${word}\""; sep=,; done
