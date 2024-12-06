@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
       inputs:
         version:
-          description: 'RouterOS version, e.g.: 7.16.2, blank for latest'
+          description: 'RouterOS version, e.g.: 7.16.2, blank for latest No Function Yet'
           type: string
           default: ''
         MatrixConf:
@@ -43,30 +43,25 @@ env:
   CUSTOM_RENEW_URL: ${{ secrets.CUSTOM_RENEW_URL }}
   MIKRO_CLOUD_URL: ${{ secrets.MIKRO_CLOUD_URL }}
   CUSTOM_CLOUD_URL: ${{ secrets.CUSTOM_CLOUD_URL }}
-  channel: ${{ github.event.inputs.Channel }}
+
 
 jobs:
   Set_BuildTime:
     runs-on: ubuntu-22.04
     outputs:
       BUILD_TIME: ${{ steps.set_buildtime.outputs.BUILD_TIME }}
-      matrix: 
-      MatrixConf: ${{ github.event.inputs.MatrixConf }}
-      channel: ${{ github.event.inputs.ChannelConf }}
     steps:
       - name: Set build time
         id: set_buildtime
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
-             echo ${{ toJson(matrix) }} 
-               
 
   Patch_RouterOS:
     needs: Set_BuildTime
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: ${{ fromJson(needs.setup.outputs.matrixc) }}
-        channel: ${{ fromJson(needs.setup.outputs.channelc) }}
+        arch: [x86,arm64]
+        channel: [stable,testing]
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
