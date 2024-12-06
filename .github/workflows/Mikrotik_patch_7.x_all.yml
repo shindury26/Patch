@@ -27,8 +27,8 @@ on:
               description: Channel
               options: 
               - "[Stable]"
-              - Testing
-              - Stable,Testing
+              - "[Testing]"
+              - "[Stable,Testing]"
 
     
 permissions:
@@ -70,7 +70,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86,arm64]
-        channel: [env.CHANNELS]
+        channel: ${{ github.event.inputs.Channel }}
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
