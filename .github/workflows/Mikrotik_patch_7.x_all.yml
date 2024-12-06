@@ -22,7 +22,7 @@ on:
             type: boolean
             default: false
             description: Stable and Testing Channel
-        ChooseChannel:
+        name:
               type: choice
               description: Channel
               options: 
@@ -66,21 +66,14 @@ jobs:
       - name: Set build time
         id: set_buildtime
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
-
-      - name: Get Channel
-        id: get_latest
-        run: |
-            CHANNEL=${{ github.event.inputs.ChooseChannel }}
-
-
- 
+       
   Patch_RouterOS:
     needs: Set_BuildTime
     runs-on: ubuntu-22.04 
     strategy:
       matrix:
         arch: [x86,arm64]
-        channel:  ${{ github.event.inputs.ChooseChannel }} 
+        channel: ${{ github.event.inputs.ChooseChannel }} 
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
