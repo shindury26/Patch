@@ -22,6 +22,17 @@ on:
             type: boolean
             default: false
             description: Stable and Testing Channel
+        name:
+              type: choice
+              description: Who to greet
+              options: 
+              - monalisa
+              - cschleiden
+        message:
+              required: true
+        use-emoji:
+              type: boolean
+              description: Include 🎉🤣 emojis
 permissions:
   contents: write
 
