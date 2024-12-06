@@ -10,27 +10,13 @@ on:
           description: 'RouterOS version, e.g.: 7.16.2, blank for latest'
           type: string
           default: ''
-        repo_1:
-            type: boolean
-            default: false
-            description: Stable Channel
-        repo_2:
-            type: boolean
-            default: false
-            description: Testing Channel
-        repo_3:
-            type: boolean
-            default: false
-            description: Stable and Testing Channel
-        Channel:
-              type: choice
-              description: Channel
-              options: 
-              - "[Stable]"
-              - "[Testing]"
-              - "[Stable,Testing]"
-
-    
+        ChannelConf:
+          type: choice
+          description: Channel
+          options: 
+          - "[Stable]"
+          - "[Testing]"
+          - "[Stable,Testing]"
 permissions:
   contents: write
 
@@ -51,7 +37,7 @@ env:
   CUSTOM_RENEW_URL: ${{ secrets.CUSTOM_RENEW_URL }}
   MIKRO_CLOUD_URL: ${{ secrets.MIKRO_CLOUD_URL }}
   CUSTOM_CLOUD_URL: ${{ secrets.CUSTOM_CLOUD_URL }}
-  CHANNELS: ${{ github.event.inputs.Channel }}
+  channel: ${{ github.event.inputs.Channel }}
 
 jobs:
   Set_BuildTime:
@@ -62,11 +48,10 @@ jobs:
       - name: Set build time
         id: set_buildtime
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
-        
-       
+
   Patch_RouterOS:
     needs: Set_BuildTime
-    runs-on: ubuntu-22.04 
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         arch: [x86,arm64]
