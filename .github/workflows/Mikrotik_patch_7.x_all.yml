@@ -24,15 +24,17 @@ on:
             description: Stable and Testing Channel
         name:
               type: choice
-              description: Who to greet
+              description: Channel
               options: 
-              - monalisa
-              - cschleiden
+              - Stable
+              - Testing
+              - Stable,Testing
         message:
               required: true
         use-emoji:
               type: boolean
               description: Include 🎉🤣 emojis
+    
 permissions:
   contents: write
 
@@ -64,7 +66,19 @@ jobs:
       - name: Set build time
         id: set_buildtime
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
-       
+  
+  Choices:
+  env:
+  TARGET_ENVIRONMET: >
+    ${{ fromJson('{
+      "Stable": "Stable",
+      "Testing": "Testing"
+      "Stable,Testing": "Stable,Testing"
+    }')[github.event.inputs.Channel] }}
+  steps:
+    - run: |
+     move-file .env.$TARGET_ENVIRONMET .env
+
   Patch_RouterOS:
     needs: Set_BuildTime
     runs-on: ubuntu-22.04 
