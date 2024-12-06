@@ -13,15 +13,15 @@ on:
         repo_1:
             type: boolean
             default: false
-            description: Stable
+            description: Stable Channel
         repo_2:
             type: boolean
             default: false
-            description: Testing
+            description: Testing Channel
         repo_3:
             type: boolean
             default: false
-            description: Testing
+            description: Stable and Testing Channel
 permissions:
   contents: write
 
@@ -53,25 +53,14 @@ jobs:
       - name: Set build time
         id: set_buildtime
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
-
+       
   Patch_RouterOS:
     needs: Set_BuildTime
-    runs-on: ubuntu-22.04
-    if: github.event.inputs.repo_1 == 'true'   
+    runs-on: ubuntu-22.04 
     strategy:
       matrix:
         arch: [x86,arm64]
         channel: [stable,testing]
-
-  Patch_RouterOS1:
-    needs: Set_BuildTime
-    runs-on: ubuntu-22.04
-    if: github.event.inputs.repo_2 == 'true'   
-    strategy:
-      matrix:
-        arch: [x86,arm64]
-        channel: [stable,testing]
-      
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
