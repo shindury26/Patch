@@ -13,11 +13,15 @@ on:
         repo_1:
             type: boolean
             default: false
-            description: Use Repo 1?
+            description: Stable Channel
         repo_2:
             type: boolean
             default: false
-            description: Use Repo 2?
+            description: Testing Channel
+        repo_3:
+            type: boolean
+            default: false
+            description: Stable, Testing Channel
 permissions:
   contents: write
 
@@ -51,6 +55,26 @@ jobs:
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
 
   Patch_RouterOS:
+    if: github.event.inputs.repo_1 == 'true'
+    needs: Set_BuildTime
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch: [x86,arm64]
+        channel: [stable]
+
+    
+  Patch_RouterOS_Stable:
+    if: github.event.inputs.repo_2 == 'true'   
+    needs: Set_BuildTime
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch: [x86,arm64]
+        channel: [testing]
+
+  Patch_RouterOS_Testing:
+    if: github.event.inputs.repo_3 == 'true'   
     needs: Set_BuildTime
     runs-on: ubuntu-22.04
     strategy:
@@ -61,6 +85,7 @@ jobs:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
       ARCH: ""
+
 
     steps:
     - name: Checkout repository
