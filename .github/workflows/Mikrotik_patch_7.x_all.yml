@@ -62,11 +62,16 @@ jobs:
       matrix:
         arch: [x86,arm64]
         channel: [stable,testing]
-     if: github.event.inputs.repo_2 == 'true'   
+
+  Patch_RouterOS1:
+    needs: Set_BuildTime
+    runs-on: ubuntu-22.04
+    if: github.event.inputs.repo_2 == 'true'   
     strategy:
-        matrix:
+      matrix:
         arch: [x86,arm64]
         channel: [stable,testing]
+      
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
