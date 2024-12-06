@@ -55,7 +55,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86,arm64]
-        channel: ${{ github.event.inputs.Channel }}
+        channel: []
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
