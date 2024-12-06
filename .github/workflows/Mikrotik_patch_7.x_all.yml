@@ -14,15 +14,15 @@ on:
            type: choice
            description: Matrix
            options: 
-           - "[x86]"
-           - "[arm64]"
+           - x86
+           - arm64
         ChannelConf:
           type: choice
           description: Channel
           options: 
-          - "[Stable]"
-          - "[Testing]"
-          - "[Stable,Testing]"
+          - Stable
+          - Testing
+          - Stable,Testing
 permissions:
   contents: write
 
@@ -60,8 +60,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: ${{ github.event.inputs.MatrixConf}}
-        channel: ${{ github.event.inputs.ChannelConf}}
+        arch: ${{ fromJSON(github.event.inputs.MatrixConf)}}
+        channel: ${{ fromJSON(github.event.inputs.ChannelConf)}}
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
