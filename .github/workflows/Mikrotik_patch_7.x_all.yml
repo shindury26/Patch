@@ -69,7 +69,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86,arm64]
-        channel: ${{ github.event.inputs.Channel }}
+        channel: '['' ${{ github.event.inputs.Channel }} ]'
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
