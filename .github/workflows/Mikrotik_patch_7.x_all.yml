@@ -56,12 +56,12 @@ jobs:
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
 
   Patch_RouterOS:
-    needs: Set_BuildTime
+    needs: Set_BuildTime 
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: [x86,arm64]
-        channel: [stable,testing]
+        arch: ${{ fromJSON(github.event.value.MatrixConf) }} 
+        channel: ${{ fromJSON(github.event.inputs.ChannelConf) }}
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
