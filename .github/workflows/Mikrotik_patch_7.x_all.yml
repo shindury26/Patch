@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: ${{ fromJSON(github.event.value.MatrixConf) }} 
+        arch: ${{ fromJSON(github.event.inputs.MatrixConf) }} 
         channel: ${{ fromJSON(github.event.inputs.ChannelConf) }}
     env:
       TZ: 'Asia/Shanghai'
