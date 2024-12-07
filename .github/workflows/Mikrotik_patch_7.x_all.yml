@@ -64,7 +64,7 @@ jobs:
     strategy:
       matrix:
         arch:  [x86,arm64]
-        channel: ["${{ inputs.ChannelConf }}"]
+        channel: [Stable,Testing]
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
