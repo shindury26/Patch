@@ -63,8 +63,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch: ${{ fromJSON(github.event.inputs.MatrixConf) }} 
-        channel: ${{ fromJSON(github.event.inputs.ChannelConf) }}
+        arch:  [ "${{ inputs.MatrixConf }}" ]
+        channel: [ "${{ inputs.ChannelConf }}" ]
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
@@ -73,6 +73,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      
+
         
     - name: Set up Python
       uses: actions/setup-python@v5
