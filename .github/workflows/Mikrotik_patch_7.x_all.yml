@@ -21,11 +21,11 @@ on:
         ChannelConf:
           type: choice
           description: Channel
-          default: 'Stable,Testing'
+          default: 'Stable, Testing'
           options: 
           - 'Stable'
           - 'Testing'
-          - 'Stable,Testing'
+          - 'Stable, Testing'
 permissions:
   contents: write
 
