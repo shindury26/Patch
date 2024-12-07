@@ -13,16 +13,19 @@ on:
         MatrixConf:
            type: choice
            description: Matrix
+           default: '["x86"]'
            options: 
-           - x86
-           - arm64
+           - '["x86"]'
+           - '["arm64"]'
+           - '["x86,arm64"]'
         ChannelConf:
           type: choice
           description: Channel
+          default: '["Stable"]'
           options: 
-          - Stable
-          - Testing
-          - Stable,Testing
+          - '["Stable"]'
+          - '["Testing"]'
+          - '["Stable,Testing"]'
 permissions:
   contents: write
 
