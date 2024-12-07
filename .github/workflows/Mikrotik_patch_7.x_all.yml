@@ -63,8 +63,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch:  [ "${{ inputs.MatrixConf }}" ]
-        channel: [ "${{ inputs.ChannelConf }}" ]
+        arch:  [x86,arm64]
+        channel: ["${{ inputs.ChannelConf }}"]
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
