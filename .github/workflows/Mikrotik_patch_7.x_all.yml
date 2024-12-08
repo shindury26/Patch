@@ -17,7 +17,7 @@ on:
            options: 
            - 'x86'
            - 'arm64'
-           - '[x86,arm64]'
+           - 'arch : [x86,arm64]'
         ChannelConf:
           type: choice
           description: Channel
@@ -25,7 +25,7 @@ on:
           options: 
           - 'Stable'
           - 'Testing'
-          - '[Stable, Testing]'
+          - 'channel: [Stable, Testing]'
 permissions:
   contents: write
 
@@ -63,8 +63,8 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch:  ${{ inputs.MatrixConf }}
-        channel: ${{ inputs.ChannelConf }}
+         ${{ inputs.MatrixConf }}
+         ${{ inputs.ChannelConf }}
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
