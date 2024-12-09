@@ -10,7 +10,8 @@ on:
           type: choice
           description: ROS Version
           default: 'Latest Version'
-          options: 
+          options:
+          - 'Latest Version'
           - '7.16.2'
           - '7.16.1'
           - '7.16'
