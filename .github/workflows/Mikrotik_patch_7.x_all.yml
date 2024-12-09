@@ -14,22 +14,6 @@ on:
           - '7.16.2'
           - '7.16.1'
           - '7.16'
-        MatrixConf:
-          type: choice
-          description: Matrix
-          default: 'x86,arm64'
-          options: 
-          - 'x86'
-          - 'arm64'
-          - 'x86,arm64'
-        ChannelConf:
-          type: choice
-          description: Channel
-          default: 'Stable, Testing'
-          options: 
-          - 'Stable'
-          - 'Testing'
-          - 'Stable, Testing'
 permissions:
   contents: write
 
@@ -93,13 +77,13 @@ jobs:
         echo $(uname -a)
         if [ "${{ inputs.ROSVERSION }}" == "" ]; then
         LATEST_VERSION=$(wget -nv -O - https://${{ env.MIKRO_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
-        echo Latest Version:$LATEST_VERSION
+        echo Latest Version:${{ inputs.ROSVERSION }}
         else
           LATEST_VERSION=${{ inputs.ROSVERSION }}
         fi
         if [ "${{ github.event_name }}" == "schedule" ]; then
           _LATEST_VERSION=$(wget -nv -O - https://${{ env.CUSTOM_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }}| cut -d ' ' -f1)
-          if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
+          if [ "$_LATEST_VERSION" == "${{ inputs.ROSVERSION }}" ]; then
             echo "No new version found"
             echo "has_new_version=false" >> $GITHUB_OUTPUT
             exit 0
@@ -108,7 +92,7 @@ jobs:
         echo "has_new_version=true" >> $GITHUB_OUTPUT
         BUILD_TIME=${{ needs.Set_BuildTime.outputs.BUILD_TIME }}
         echo Build Time:$BUILD_TIME
-        wget -nv -O CHANGELOG https://${{ env.MIKRO_UPGRADE_URL }}/routeros/$LATEST_VERSION/CHANGELOG
+        wget -nv -O CHANGELOG https://${{ env.MIKRO_UPGRADE_URL }}/routeros/${{ inputs.ROSVERSION }}/CHANGELOG
         cat CHANGELOG
         echo "LATEST_VERSION=${LATEST_VERSION}" >> $GITHUB_ENV
         echo "BUILD_TIME=${BUILD_TIME}" >> $GITHUB_ENV
@@ -177,18 +161,18 @@ jobs:
     - name: Get netinstall ${{ inputs.ROSVERSION }}
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86' && steps.cache-netinstall.outputs.cache-hit != 'true'
       run: |
-        sudo wget -nv -O netinstall.zip https://download.mikrotik.com/routeros/$LATEST_VERSION/netinstall-$LATEST_VERSION.zip
-        sudo wget -nv -O netinstall.tar.gz https://download.mikrotik.com/routeros/$LATEST_VERSION/netinstall-$LATEST_VERSION.tar.gz
+        sudo wget -nv -O netinstall.zip https://download.mikrotik.com/routeros/${{ inputs.ROSVERSION }}/netinstall-${{ inputs.ROSVERSION }}.zip
+        sudo wget -nv -O netinstall.tar.gz https://download.mikrotik.com/routeros/${{ inputs.ROSVERSION }}/netinstall-${{ inputs.ROSVERSION }}.tar.gz
 
     - name: Patch netinstall ${{ inputs.ROSVERSION }}
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'x86'
       run: |
         sudo unzip netinstall.zip
         sudo -E python3 patch.py netinstall netinstall.exe
-        sudo zip netinstall-$LATEST_VERSION.zip ./netinstall.exe
+        sudo zip netinstall-${{ inputs.ROSVERSION }}.zip ./netinstall.exe
         sudo tar -xvf netinstall.tar.gz
         sudo -E python3 patch.py netinstall netinstall-cli
-        sudo tar -czvf netinstall-$LATEST_VERSION.tar.gz ./netinstall-cli
+        sudo tar -czvf netinstall-${{ inputs.ROSVERSION }}.tar.gz ./netinstall-cli
 
     - name: Cache mikrotik-${{ inputs.ROSVERSION }}${{ env.ARCH }}.iso
       if: steps.get_latest.outputs.has_new_version == 'true'
@@ -202,7 +186,7 @@ jobs:
     - name: Get mikrotik-${{ inputs.ROSVERSION }}${{ env.ARCH }}.iso
       if: steps.get_latest.outputs.has_new_version == 'true' && steps.cache-mikrotik.outputs.cache-hit != 'true'
       run: |
-          sudo wget -nv -O mikrotik.iso https://download.mikrotik.com/routeros/$LATEST_VERSION/mikrotik-$LATEST_VERSION$ARCH.iso
+          sudo wget -nv -O mikrotik.iso https://download.mikrotik.com/routeros/${{ inputs.ROSVERSION }}/mikrotik-${{ inputs.ROSVERSION }}$ARCH.iso
 
 
     - name: Patch mikrotik-${{ inputs.ROSVERSION }}${{ env.ARCH }}.iso
@@ -216,17 +200,17 @@ jobs:
         sudo rsync -a ./iso/ ./new_iso/
         sudo umount ./iso
         sudo rm -rf ./iso
-        sudo mv ./new_iso/routeros-$LATEST_VERSION$ARCH.npk ./
-        sudo -E python3 patch.py npk routeros-$LATEST_VERSION$ARCH.npk
+        sudo mv ./new_iso/routeros-${{ inputs.ROSVERSION }}$ARCH.npk ./
+        sudo -E python3 patch.py npk routeros-${{ inputs.ROSVERSION }}$ARCH.npk
         NPK_FILES=$(find ./new_iso/*.npk)
         for file in $NPK_FILES; do
             sudo -E python3 npk.py sign $file $file
         done
-        sudo cp routeros-$LATEST_VERSION$ARCH.npk ./new_iso/
-        sudo -E python3 npk.py create ./new_iso/gps-$LATEST_VERSION$ARCH.npk ./option-$LATEST_VERSION$ARCH.npk option ./option.sfs -desc="busybox"
-        sudo cp option-$LATEST_VERSION$ARCH.npk ./new_iso/
-        sudo -E python3 npk.py create ./new_iso/gps-$LATEST_VERSION$ARCH.npk ./python3-$LATEST_VERSION$ARCH.npk python3 ./python3.sfs -desc="python 3.11.9"
-        sudo cp python3-$LATEST_VERSION$ARCH.npk ./new_iso/
+        sudo cp routeros-${{ inputs.ROSVERSION }}$ARCH.npk ./new_iso/
+        sudo -E python3 npk.py create ./new_iso/gps-${{ inputs.ROSVERSION }}$ARCH.npk ./option-${{ inputs.ROSVERSION }}$ARCH.npk option ./option.sfs -desc="busybox"
+        sudo cp option-${{ inputs.ROSVERSION }}$ARCH.npk ./new_iso/
+        sudo -E python3 npk.py create ./new_iso/gps-${{ inputs.ROSVERSION }}$ARCH.npk ./python3-${{ inputs.ROSVERSION }}$ARCH.npk python3 ./python3.sfs -desc="python 3.11.9"
+        sudo cp python3-${{ inputs.ROSVERSION }}$ARCH.npk ./new_iso/
         sudo mkdir ./efiboot
         sudo mount -o loop ./new_iso/efiboot.img ./efiboot
         if [ "${{ matrix.arch }}" == "x86" ]; then
@@ -234,8 +218,8 @@ jobs:
           sudo cp ./efiboot/linux.x86_64 ./BOOTX64.EFI
           sudo cp ./BOOTX64.EFI ./new_iso/isolinux/linux
           sudo umount ./efiboot
-          sudo mkisofs -o mikrotik-$LATEST_VERSION$ARCH.iso \
-                      -V "MikroTik $LATEST_VERSION ${{ matrix.arch }}" \
+          sudo mkisofs -o mikrotik-${{ inputs.ROSVERSION }}$ARCH.iso \
+                      -V "MikroTik ${{ inputs.ROSVERSION }} ${{ matrix.arch }}" \
                       -sysid "" -preparer "MiKroTiK" \
                       -publisher "" -A "MiKroTiK RouterOS" \
                       -input-charset utf-8 \
@@ -252,8 +236,8 @@ jobs:
         elif [ "${{ matrix.arch }}" == "arm64" ]; then
           sudo -E python3 patch.py kernel ./efiboot/EFI/BOOT/BOOTAA64.EFI
           sudo umount ./efiboot
-          sudo xorriso -as mkisofs -o mikrotik-$LATEST_VERSION$ARCH.iso \
-                      -V "MikroTik $LATEST_VERSION ${{ matrix.arch }}" \
+          sudo xorriso -as mkisofs -o mikrotik-${{ inputs.ROSVERSION }}$ARCH.iso \
+                      -V "MikroTik ${{ inputs.ROSVERSION }} ${{ matrix.arch }}" \
                       -sysid "" -preparer "MiKroTiK" \
                       -publisher "" -A "MiKroTiK RouterOS" \
                       -input-charset utf-8 \
@@ -267,7 +251,7 @@ jobs:
         sudo cp ./new_iso/*.npk ./all_packages/
         sudo rm -rf ./new_iso
         cd ./all_packages
-        sudo zip ../all_packages-${{ matrix.arch }}-$LATEST_VERSION.zip *.npk
+        sudo zip ../all_packages-${{ matrix.arch }}-${{ inputs.ROSVERSION }}.zip *.npk
         cd ..
 
     - name: Cache refind
@@ -287,8 +271,8 @@ jobs:
       run: |
         sudo modprobe nbd
         sudo apt-get install -y qemu-utils extlinux > /dev/null
-        truncate --size 128M install-image-$LATEST_VERSION.img
-        sudo qemu-nbd -c /dev/nbd0 -f raw install-image-$LATEST_VERSION.img
+        truncate --size 128M install-image-${{ inputs.ROSVERSION }}.img
+        sudo qemu-nbd -c /dev/nbd0 -f raw install-image-${{ inputs.ROSVERSION }}.img
         sudo mkfs.vfat -n "Install" /dev/nbd0
         sudo mkdir ./install
         sudo mount /dev/nbd0 ./install
@@ -317,8 +301,8 @@ jobs:
         sudo umount /dev/nbd0
         sudo qemu-nbd -d /dev/nbd0
         sudo rm -rf ./install
-        sudo zip install-image-$LATEST_VERSION.zip ./install-image-$LATEST_VERSION.img
-        sudo rm ./install-image-$LATEST_VERSION.img
+        sudo zip install-image-${{ inputs.ROSVERSION }}.zip ./install-image-${{ inputs.ROSVERSION }}.img
+        sudo rm ./install-image-${{ inputs.ROSVERSION }}.img
 
     - name: Cache chr-${{ inputs.ROSVERSION }}${{ env.ARCH }}.img.zip
       if: steps.get_latest.outputs.has_new_version == 'true' && matrix.arch == 'arm64'
@@ -332,31 +316,31 @@ jobs:
     - name: Get chr-${{ inputs.ROSVERSION }}${{ env.ARCH }}.img
       if: steps.get_latest.outputs.has_new_version == 'true' && steps.cache-chr-img.outputs.cache-hit != 'true' && matrix.arch == 'arm64'
       run: |
-          sudo wget -nv -O chr.img.zip https://download.mikrotik.com/routeros/$LATEST_VERSION/chr-$LATEST_VERSION$ARCH.img.zip
+          sudo wget -nv -O chr.img.zip https://download.mikrotik.com/routeros/${{ inputs.ROSVERSION }}/chr-${{ inputs.ROSVERSION }}$ARCH.img.zip
           sudo unzip chr.img.zip
           sudo rm chr.img.zip
-          sudo mv chr-$LATEST_VERSION$ARCH.img chr.img
+          sudo mv chr-${{ inputs.ROSVERSION }}$ARCH.img chr.img
 
     - name: Create chr-${{ inputs.ROSVERSION }}${{ env.ARCH }}.img
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
         sudo modprobe nbd
         sudo apt-get install -y qemu-utils extlinux > /dev/null
-        truncate --size 128M chr-$LATEST_VERSION$ARCH.img
+        truncate --size 128M chr-${{ inputs.ROSVERSION }}$ARCH.img
         sgdisk --clear --set-alignment=2 \
             --new=1::+32M --typecode=1:8300 --change-name=1:"RouterOS Boot" --attributes=1:set:2 \
             --new=2::-0 --typecode=2:8300 --change-name=2:"RouterOS" \
             --gpttombr=1:2 \
-            chr-$LATEST_VERSION$ARCH.img
-        dd if=chr-$LATEST_VERSION$ARCH.img of=pt.bin bs=1 count=66 skip=446
+            chr-${{ inputs.ROSVERSION }}$ARCH.img
+        dd if=chr-${{ inputs.ROSVERSION }}$ARCH.img of=pt.bin bs=1 count=66 skip=446
         echo -e "\x80" | dd of=pt.bin  bs=1 count=1  conv=notrunc
         sgdisk --mbrtogpt --clear --set-alignment=2 \
             --new=1::+32M --typecode=1:8300 --change-name=1:"RouterOS Boot" --attributes=1:set:2 \
             --new=2::-0 --typecode=2:8300 --change-name=2:"RouterOS" \
-            chr-$LATEST_VERSION$ARCH.img
-        dd if=mbr.bin of=chr-$LATEST_VERSION$ARCH.img  bs=1 count=446 conv=notrunc
-        dd if=pt.bin of=chr-$LATEST_VERSION$ARCH.img  bs=1 count=66 seek=446 conv=notrunc
-        sudo qemu-nbd -c /dev/nbd0 -f raw chr-$LATEST_VERSION$ARCH.img
+            chr-${{ inputs.ROSVERSION }}$ARCH.img
+        dd if=mbr.bin of=chr-${{ inputs.ROSVERSION }}$ARCH.img  bs=1 count=446 conv=notrunc
+        dd if=pt.bin of=chr-${{ inputs.ROSVERSION }}$ARCH.img  bs=1 count=66 seek=446 conv=notrunc
+        sudo qemu-nbd -c /dev/nbd0 -f raw chr-${{ inputs.ROSVERSION }}$ARCH.img
         sudo mkfs.vfat -n "Boot" /dev/nbd0p1
         sudo mkfs.ext4 -F -L "RouterOS"  -m 0 /dev/nbd0p2
         sudo mkdir -p ./img/{boot,routeros}
@@ -382,31 +366,31 @@ jobs:
         sudo umount /dev/nbd0p1
         sudo mount  /dev/nbd0p2 ./img/routeros/
         sudo mkdir -p ./img/routeros/{var/pdb/{system,option},boot,rw}
-        sudo cp ./all_packages/option-$LATEST_VERSION$ARCH.npk ./img/routeros/var/pdb/option/image
-        sudo cp ./all_packages/routeros-$LATEST_VERSION$ARCH.npk ./img/routeros/var/pdb/system/image
+        sudo cp ./all_packages/option-${{ inputs.ROSVERSION }}$ARCH.npk ./img/routeros/var/pdb/option/image
+        sudo cp ./all_packages/routeros-${{ inputs.ROSVERSION }}$ARCH.npk ./img/routeros/var/pdb/system/image
         sudo umount /dev/nbd0p2
         sudo rm -rf ./img
         sudo qemu-nbd -d /dev/nbd0
 
-        sudo qemu-img convert -f raw -O qcow2 chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.qcow2
-        sudo qemu-img convert -f raw -O vmdk chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.vmdk
-        sudo qemu-img convert -f raw -O vpc chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.vhd
-        sudo qemu-img convert -f raw -O vhdx chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.vhdx
-        sudo qemu-img convert -f raw -O vdi chr-$LATEST_VERSION$ARCH.img chr-$LATEST_VERSION$ARCH.vdi
+        sudo qemu-img convert -f raw -O qcow2 chr-${{ inputs.ROSVERSION }}$ARCH.img chr-${{ inputs.ROSVERSION }}$ARCH.qcow2
+        sudo qemu-img convert -f raw -O vmdk chr-${{ inputs.ROSVERSION }}$ARCH.img chr-${{ inputs.ROSVERSION }}$ARCH.vmdk
+        sudo qemu-img convert -f raw -O vpc chr-${{ inputs.ROSVERSION }}$ARCH.img chr-${{ inputs.ROSVERSION }}$ARCH.vhd
+        sudo qemu-img convert -f raw -O vhdx chr-${{ inputs.ROSVERSION }}$ARCH.img chr-${{ inputs.ROSVERSION }}$ARCH.vhdx
+        sudo qemu-img convert -f raw -O vdi chr-${{ inputs.ROSVERSION }}$ARCH.img chr-${{ inputs.ROSVERSION }}$ARCH.vdi
 
-        sudo zip chr-$LATEST_VERSION$ARCH.qcow2.zip chr-$LATEST_VERSION$ARCH.qcow2
-        sudo zip chr-$LATEST_VERSION$ARCH.vmdk.zip chr-$LATEST_VERSION$ARCH.vmdk
-        sudo zip chr-$LATEST_VERSION$ARCH.vhd.zip chr-$LATEST_VERSION$ARCH.vhd
-        sudo zip chr-$LATEST_VERSION$ARCH.vhdx.zip chr-$LATEST_VERSION$ARCH.vhdx
-        sudo zip chr-$LATEST_VERSION$ARCH.vdi.zip chr-$LATEST_VERSION$ARCH.vdi
-        sudo zip chr-$LATEST_VERSION$ARCH.img.zip chr-$LATEST_VERSION$ARCH.img
+        sudo zip chr-${{ inputs.ROSVERSION }}$ARCH.qcow2.zip chr-${{ inputs.ROSVERSION }}$ARCH.qcow2
+        sudo zip chr-${{ inputs.ROSVERSION }}$ARCH.vmdk.zip chr-${{ inputs.ROSVERSION }}$ARCH.vmdk
+        sudo zip chr-${{ inputs.ROSVERSION }}$ARCH.vhd.zip chr-${{ inputs.ROSVERSION }}$ARCH.vhd
+        sudo zip chr-${{ inputs.ROSVERSION }}$ARCH.vhdx.zip chr-${{ inputs.ROSVERSION }}$ARCH.vhdx
+        sudo zip chr-${{ inputs.ROSVERSION }}$ARCH.vdi.zip chr-${{ inputs.ROSVERSION }}$ARCH.vdi
+        sudo zip chr-${{ inputs.ROSVERSION }}$ARCH.img.zip chr-${{ inputs.ROSVERSION }}$ARCH.img
 
-        sudo rm chr-$LATEST_VERSION$ARCH.qcow2
-        sudo rm chr-$LATEST_VERSION$ARCH.vmdk
-        sudo rm chr-$LATEST_VERSION$ARCH.vhd
-        sudo rm chr-$LATEST_VERSION$ARCH.vhdx
-        sudo rm chr-$LATEST_VERSION$ARCH.vdi
-        sudo rm chr-$LATEST_VERSION$ARCH.img
+        sudo rm chr-${{ inputs.ROSVERSION }}$ARCH.qcow2
+        sudo rm chr-${{ inputs.ROSVERSION }}$ARCH.vmdk
+        sudo rm chr-${{ inputs.ROSVERSION }}$ARCH.vhd
+        sudo rm chr-${{ inputs.ROSVERSION }}$ARCH.vhdx
+        sudo rm chr-${{ inputs.ROSVERSION }}$ARCH.vdi
+        sudo rm chr-${{ inputs.ROSVERSION }}$ARCH.img
 
     - name: Clear Cloudflare cache
       if: steps.get_latest.outputs.has_new_version == 'true'
@@ -420,16 +404,16 @@ jobs:
       if: steps.get_latest.outputs.has_new_version == 'true'
       run: |
         HEADER="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
-        RELEASE_INFO=$(curl -s -H $HEADER https://api.github.com/repos/${{ github.repository }}/releases/tags/$LATEST_VERSION$ARCH)
+        RELEASE_INFO=$(curl -s -H $HEADER https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ inputs.ROSVERSION }}$ARCH)
         RELEASE_ID=$(echo $RELEASE_INFO | jq -r '.id')
         echo "Release ID: $RELEASE_ID"
         if [ "$RELEASE_ID" != "null" ]; then
-            curl -X DELETE -H "$HEADER" https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$LATEST_VERSION$ARCH
-            echo "Tag $LATEST_VERSION$ARCH deleted successfully."
+            curl -X DELETE -H "$HEADER" https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${{ inputs.ROSVERSION }}$ARCH
+            echo "Tag ${{ inputs.ROSVERSION }}$ARCH deleted successfully."
             curl -X DELETE -H "$HEADER" https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
-            echo "Release with tag $LATEST_VERSION$ARCH deleted successfully."
+            echo "Release with tag ${{ inputs.ROSVERSION }}$ARCH deleted successfully."
         else
-            echo "Release not found for tag: $LATEST_VERSION)"
+            echo "Release not found for tag: ${{ inputs.ROSVERSION }})"
         fi
 
     - name: Create Release tag ${{ inputs.ROSVERSION }} ${{ matrix.arch }}
