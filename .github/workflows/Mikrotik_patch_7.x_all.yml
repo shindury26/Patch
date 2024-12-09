@@ -6,10 +6,6 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch:
       inputs:
-        version:
-          description: 'RouterOS version, e.g.: 7.16.2, blank for latest No Function Yet'
-          type: string
-          default: ''
         ROSVERSION:
           type: choice
           description: ROS Version
@@ -95,11 +91,11 @@ jobs:
       id: get_latest
       run: |
         echo $(uname -a)
-        if [ "${{ inputs.version }}" == "" ]; then
+        if [ "${{ inputs.ROSVERSION }}" == "" ]; then
         LATEST_VERSION=$(wget -nv -O - https://${{ env.MIKRO_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
         echo Latest Version:$LATEST_VERSION
         else
-          LATEST_VERSION=${{ inputs.version }}
+          LATEST_VERSION=${{ inputs.ROSVERSION }}
         fi
         if [ "${{ github.event_name }}" == "schedule" ]; then
           _LATEST_VERSION=$(wget -nv -O - https://${{ env.CUSTOM_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }}| cut -d ' ' -f1)
