@@ -3,34 +3,9 @@ on:
   # push:
   #   branches: [ "main" ]
   schedule:
-    - cron: "* * * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
-      inputs:
-        Version:
-          type: choice
-          description: ROS Version
-          default: 'Latest Version'
-          options:
-          - 'Latest Version'
-          - '7.16.2'
-          - '7.16.1'
-          - '7.16'
-        MatrixConf:
-           type: choice
-           description: Matrix 
-           default: 'x86,arm64'
-           options: 
-           - 'x86'
-           - 'arm64'
-           - 'x86,arm64'
-        ChannelConf:
-          type: choice
-          description: Channel
-          default: 'Stable, Testing'
-          options: 
-          - 'Stable'
-          - 'Testing'
-          - 'Stable, Testing'
+
 permissions:
   contents: write
 
@@ -64,12 +39,12 @@ jobs:
         run: echo "BUILD_TIME=$(date +'%s')" >> $GITHUB_OUTPUT
 
   Patch_RouterOS:
-    needs: Set_BuildTime 
+    needs: Set_BuildTime
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        arch:  [x86,arm64]
-        channel: [Stable,Testing]
+        arch: [x86,arm64]
+        channel: [stable,testing]
     env:
       TZ: 'Asia/Shanghai'
       LATEST_VERSION: ""
@@ -78,26 +53,19 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
-
         
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11' 
 
-
-
     - name: Get latest routeros version
       id: get_latest
       run: |
         echo $(uname -a)
-        if [ "${{ inputs.version }}" == "Latest Version" ]; then
+         echo $(uname -a)
         LATEST_VERSION=$(wget -nv -O - https://${{ env.MIKRO_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }} | cut -d ' ' -f1)
         echo Latest Version:$LATEST_VERSION
-        else
-          LATEST_VERSION=${{ inputs.version }}
-        fi
         if [ "${{ github.event_name }}" == "schedule" ]; then
           _LATEST_VERSION=$(wget -nv -O - https://${{ env.CUSTOM_UPGRADE_URL }}/routeros/NEWESTa7.${{ matrix.channel }}| cut -d ' ' -f1)
           if [ "$_LATEST_VERSION" == "$LATEST_VERSION" ]; then
@@ -449,4 +417,3 @@ jobs:
           install-image-${{ env.LATEST_VERSION }}.zip
           routeros-${{ env.LATEST_VERSION }}${{ env.ARCH }}.npk
           all_packages-*-${{ env.LATEST_VERSION }}.zip
-
