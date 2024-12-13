@@ -18,19 +18,19 @@ on:
       ArchConf:
          type: choice
          description: Matrix 
-         default: 'x86,arm64'
+         default: ''
          options: 
          - 'x86'
          - 'arm64'
-         - 'x86,arm64'
+         - 'x86,arm64 - Not Working'
       ChannelConf:
         type: choice
         description: Channel
-        default: 'Stable, Testing'
+        default: ''
         options: 
         - 'Stable'
         - 'Testing'
-        - 'Stable, Testing'
+        - 'Stable, Testing - Not Working'
 permissions:
   contents: write
 
